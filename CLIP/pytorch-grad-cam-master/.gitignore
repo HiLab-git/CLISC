@@ -1,0 +1,9 @@
+build
+dist
+*.egg-info
+**/*.pyc
+.github
+examples
+tests
+tutorials
+usage_examples
