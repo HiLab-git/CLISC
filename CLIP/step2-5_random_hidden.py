@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 
 
-base_path = '/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/data_BraTS/CLIP_label'
+base_path = '/media/ubuntu/maxiaochuan/CLISC/data_BraTS/CLIP_label'
 input_path = os.path.join(base_path, 'train')
 box_path = os.path.join(base_path, 'bounding_box')
 output_path = os.path.join(base_path, 'aug_train')
@@ -50,14 +50,7 @@ def hidden_back(img, min_x, max_x, min_y, max_y):
     cv2.rectangle(img, (max_x, max_y), (img.shape[0], img.shape[1]), (0, 0, 0), -1)
     
 
-# file_path = '/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/data_BraTS/CLIP_label/bounding_box/positive/BraTS20_Training_006_slice_68_label_1.txt'
-# with open(file_path, 'r') as file:
-#     lines = list(map(int, file.readline().split()))
-
-# min_y, max_y, min_x, max_x = lines
-# print(lines)
 phase = ['positive', 'negative']
-# /media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/data_BraTS/CLIP_label/train/positive/BraTS20_Training_001_slice_33_label_1.tiff
 dilation = 10
 for phe in phase:
     os.makedirs(os.path.join(output_path, phe), exist_ok=True)
@@ -80,12 +73,6 @@ for phe in phase:
             max_y = int(max_y * y_ratio)
             cam = cv2.resize(cam, (224, 224))
 
-            """ method1: 将boundingbox内按均值划分，高位的部分直接遮挡 """
-            # threshold = cam[min_x : max_x + 1, min_y : max_y + 1].mean()
-            # for i in range(min_x, max_x + 1):
-            #     for j in range(min_y, max_y + 1):
-            #         if cam[i, j] > threshold: img[i, j] = 0
-            
             """ method2: 将boundingbox内的区域分为10段，分别高位的几段直接遮挡 """
             min_one = cam[min_x : max_x + 1, min_y : max_y + 1].min()
             max_one = cam[min_x : max_x + 1, min_y : max_y + 1].max()
@@ -96,19 +83,6 @@ for phe in phase:
                 for j in range(min_y, max_y + 1):
                     if cam[i, j] > threshold: img[i, j] = 0
             
-            """ method3: 找一个最大区域 """
-            # for i in range(16):
-            #     for j in range(16):
-            #         pos_x1 = int(min_x + i / 16 * d_x)
-            #         pos_x2 = int(min_x + (i + 1) / 16 * d_x)
-            #         pos_y1 = int(min_y + j / 16 * d_y)
-            #         pos_y2 = int(min_y + (j + 1) / 16 * d_y)
-            #         tmp = cam[pos_x1 : pos_x2 + 1, pos_y1 : pos_y2 + 1]
-            #         evaluation = tmp.mean()
-            #         if evaluation > max_highlight: 
-            #             max_highlight = evaluation
-            #             hidden_pos = [[pos_x1, pos_y1, pos_x2, pos_y2]]
-            # hidden_cam_mask(img, hidden_pos, dilation)
 
 
         cv2.imwrite(os.path.join(output_path, phe, file), img)

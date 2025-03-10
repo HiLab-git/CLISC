@@ -24,11 +24,9 @@ def find_bounding_box_2d(mask):
     
     return min_y, max_y, min_x, max_x
 
-input_path = '/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/data_BraTS/CLIP_label/train'
-cam_path = '/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/data_BraTS/cam/valid_layercam_l3/cam_lcnt_3d_l3'
-save_path = '/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/data_BraTS/CLIP_label/bounding_box'
-# BraTS20_Training_001.nii.gz
-# BraTS20_Training_001_slice_33_label_1.tiff
+input_path = '/media/ubuntu/maxiaochuan/CLISC/data_BraTS/CLIP_label/train'
+cam_path = '/media/ubuntu/maxiaochuan/CLISC/data_BraTS/cam/train_layercam_l3/cam_lcnt_3d_l3'
+save_path = '/media/ubuntu/maxiaochuan/CLISC/data_BraTS/CLIP_label/bounding_box'
 phase = ['positive', 'negative']
 os.makedirs(os.path.join(input_path.replace('train', 'bounding_box'), 'positive'), exist_ok=True)
 os.makedirs(os.path.join(input_path.replace('train', 'bounding_box'), 'negative'), exist_ok=True)

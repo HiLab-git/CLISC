@@ -1,9 +1,9 @@
 import os
 import shutil
 
-input_path = "/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/data_BraTS/volume_pre/pseudo/train"
-train_image_path = "/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/data_BraTS/volume_pre/image/train"
-output_image_path = "/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/data_BraTS/volume_pre/image/filter_train"
+input_path = "/media/ubuntu/maxiaochuan/CLISC/data_BraTS/volume_pre/pseudo/train"
+train_image_path = "/media/ubuntu/maxiaochuan/CLISC/data_BraTS/volume_pre/image/train"
+output_image_path = "/media/ubuntu/maxiaochuan/CLISC/data_BraTS/volume_pre/image/filter_train"
 pesudo_labels = os.listdir(input_path)
 train_images = os.listdir(train_image_path)
 

@@ -5,6 +5,8 @@ from skimage import measure
 import nibabel as nib
 import SimpleITK as sitk
 import glob
+import os
+import random
 
 def brain_bbox(data, gt):
     mask = (data != 0)
@@ -80,7 +82,6 @@ def itensity_normalize_one_volume(volume):
     std = pixels.std()
     out = (volume - mean)/std
     out_random = np.random.normal(0, 1, size=volume.shape)
-#     out[volume == 0] = out_random[volume == 0]
     out = out.astype(np.float32)
     return out
 
@@ -102,23 +103,35 @@ class MedicalImageDeal(object):
         return (self.img - self.img.min()) / (self.img.max() - self.img.min())
 
 
-# 处理flair数据
-all_flair = glob.glob("/media/ubuntu/data3/maxiaochuan/data/BraTS2020_TrainingData/*/*_flair.nii")
-# all_flair = glob.glob("flair/*_flair.nii.gz")
+base_dir = "/media/ubuntu/maxiaochuan/CLISC/data_BraTS/volume_pre"
+for split in ['train', 'valid', 'test']:
+    os.makedirs(f"{base_dir}/image/{split}", exist_ok=True)
+    os.makedirs(f"{base_dir}/label/{split}", exist_ok=True)
 
-# 在处理flair数据的循环中增加保存mask的代码
-for p in all_flair:
-    data = sitk.GetArrayFromImage(sitk.ReadImage(p))
-    lab = sitk.GetArrayFromImage(sitk.ReadImage(p.replace("flair", "seg")))
-    img, lab, mask = brain_bbox(data, lab)  # 获取mask
-    img = MedicalImageDeal(img, percent=0.999).valid_img
-    # img = itensity_normalize_one_volume(img)
-    lab[lab > 0] = 1
-    uid = p.split("/")[-1]
-    
-    # 保存图像和标签
-    # sitk.WriteImage(sitk.GetImageFromArray(img), f"/media/ubuntu/data3/maxiaochuan/data/BraTS2020_preprocess/flair_image/{uid}")
-    # sitk.WriteImage(sitk.GetImageFromArray(lab), f"/media/ubuntu/data3/maxiaochuan/data/BraTS2020_preprocess/label/{uid}")
-    
-    # 保存mask
-    sitk.WriteImage(sitk.GetImageFromArray(mask), f"/media/ubuntu/data3/maxiaochuan/data_BraTS/BraTS2020_preprocess/mask/{uid}")
+all_flair = glob.glob("/media/ubuntu/maxiaochuan/data/CLISC/data_BraTS/BraTS2020_TrainingData/*/*_flair.nii")
+random.seed(42)  
+random.shuffle(all_flair)
+
+total_samples = len(all_flair)
+train_idx = int(total_samples * 0.7)
+valid_idx = int(total_samples * 0.1) + train_idx
+
+# 划分数据集
+train_files = all_flair[:train_idx]
+valid_files = all_flair[train_idx:valid_idx]
+test_files = all_flair[valid_idx:]
+
+for split, file_list in [('train', train_files), ('valid', valid_files), ('test', test_files)]:
+    print(f"Processing {split} set: {len(file_list)} files")
+    for p in file_list:
+        data = sitk.GetArrayFromImage(sitk.ReadImage(p))
+        lab = sitk.GetArrayFromImage(sitk.ReadImage(p.replace("flair", "seg")))
+        img, lab, mask = brain_bbox(data, lab)
+        img = MedicalImageDeal(img, percent=0.999).valid_img
+        lab[lab > 0] = 1
+        uid = p.split("/")[-1]
+        
+        sitk.WriteImage(sitk.GetImageFromArray(img), 
+                       f"{base_dir}/image/{split}/{uid}")
+        sitk.WriteImage(sitk.GetImageFromArray(mask), 
+                       f"{base_dir}/label/{split}/{uid}")

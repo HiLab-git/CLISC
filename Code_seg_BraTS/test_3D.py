@@ -23,8 +23,8 @@ def Inference(FLAGS, num_classes = 2):
         os.makedirs(test_save_path)
     
     # save_mode_path = os.path.join(snapshot_path, '{}_best_model.pth'.format(FLAGS.model))
-    save_mode_path = "/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/Code_seg_BraTS/model/BraTs2020_Un_Supervised_ce/unet_3D/iter_1800_dice_0.8173.pth"
-    # save_mode_path = "/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/Code_seg_BraTS/model/BraTs2020_Un_Supervised_ce/unet_3D/Stage2_0.8387_0.856_highother.pth"
+    save_mode_path = "/media/ubuntu/maxiaochuan/CLISC/Code_seg_BraTS/model/BraTs2020_Un_Supervised_ce/unet_3D/iter_1800_dice_0.8173.pth"
+    # save_mode_path = "/media/ubuntu/maxiaochuan/CLISC/Code_seg_BraTS/model/BraTs2020_Un_Supervised_ce/unet_3D/Stage2_0.8387_0.856_highother.pth"
     if FLAGS.model == 'unet_3D':
         net = unet_3D(n_classes=num_classes, in_channels=1).to(device)
     elif FLAGS.model == 'BiNet':
@@ -77,7 +77,7 @@ def Inference(FLAGS, num_classes = 2):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--root_path', type=str, default='/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/data_BraTS/volume_pre/image', help='Name of Experiment')
+    parser.add_argument('--root_path', type=str, default='/media/ubuntu/maxiaochuan/CLISC/data_BraTS/volume_pre/image', help='Name of Experiment')
     parser.add_argument('--exp', type=str, default='BraTs2020_Un_Supervised_ce', help='experiment_name')
     parser.add_argument('--stage', type=str, default='test')
     parser.add_argument('--patch_size', type=list,  default=[128, 128, 128], help='patch size of network input')

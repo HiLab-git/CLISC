@@ -11,9 +11,9 @@ from torchvision import transforms
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-root_dir = '/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/data_BraTS/volume_pre/image/valid' # 用验证集val调整训练参数，用含噪声的train来训练后续的resnet
-root_dir_label = '/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/data_BraTS/volume_pre/label/valid'
-save_path = '/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/data_BraTS/CLIP_label/gt'
+root_dir = '/media/ubuntu/maxiaochuan/CLISC/data_BraTS/volume_pre/image/train' # 用验证集val调整训练参数，用含噪声的train来训练后续的resnet
+root_dir_label = '/media/ubuntu/maxiaochuan/CLISC/data_BraTS/volume_pre/label/train'
+save_path = '/media/ubuntu/maxiaochuan/CLISC/data_BraTS/CLIP_label/gt'
 filenames = glob.glob(root_dir + "/*.nii.gz") 
 print(len(filenames))
 

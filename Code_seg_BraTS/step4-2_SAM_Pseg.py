@@ -9,6 +9,7 @@ import cv2
 
 import sys
 sys.path.append("..")
+sys.path.append(".")
 from segment_anything import sam_model_registry, SamPredictor
 
 import matplotlib.pyplot as plt
@@ -71,10 +72,10 @@ def prepare_image(image, transform, device):
 
 
 ## 实例化sam model
-sam_checkpoint = "/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/segment-anything/sam_vit_b_01ec64.pth" 
+sam_checkpoint = "/media/ubuntu/maxiaochuan/CLISC/segment-anything/sam_vit_b_01ec64.pth" 
 model_type = "vit_b"
 
-# sam_checkpoint = "/media/ubuntu//maxiaochuan/CLIP_SAM_zero_shot_segmentation/segment-anything/sam_vit_h_4b8939.pth"
+# sam_checkpoint = "/media/ubuntu//maxiaochuan/CLISC/segment-anything/sam_vit_h_4b8939.pth"
 # model_type = "vit_h"
 
 device = "cuda:3"
@@ -129,8 +130,8 @@ def box_iou_xyxy(box1, box2):
     return iou
 
 
-f_path = '/media/ubuntu//maxiaochuan/CLIP_SAM_zero_shot_segmentation/data_BraTS'
-cam_folder = "/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/Code_seg_BraTS/Unet_Pseg"
+f_path = '/media/ubuntu//maxiaochuan/CLISC/data_BraTS'
+cam_folder = "/media/ubuntu/maxiaochuan/CLISC/Code_seg_BraTS/Unet_Pseg"
 bbx_cam_folder = cam_folder
 
 
@@ -142,7 +143,6 @@ os.makedirs(f_path + '/volume_pre/pseudo/train', exist_ok=True)
 
 for s, cam_file in enumerate(os.listdir(cam_folder)):
     if cam_file.endswith('.nii.gz'):
-        scores = cnt = 0
         # 构建CAM和标签的文件路径
         cam_nii_path = os.path.join(cam_folder, cam_file) # 找到cam文件
         bbx_cam_nii_path = os.path.join(bbx_cam_folder, cam_file) # 同上
@@ -155,7 +155,7 @@ for s, cam_file in enumerate(os.listdir(cam_folder)):
         
         
         mask_file = cam_file.replace('.nii.gz', '_flair.nii')
-        mask_path = '/media/ubuntu//maxiaochuan/CLIP_SAM_zero_shot_segmentation/data/BraTS2020_preprocess/mask/' + mask_file
+        mask_path = '/media/ubuntu//maxiaochuan/CLISC/data/BraTS2020_preprocess/mask/' + mask_file
 
         if not os.path.exists(out_point_fig_dir):
             os.makedirs(out_point_fig_dir, exist_ok=True)
@@ -259,11 +259,16 @@ for s, cam_file in enumerate(os.listdir(cam_folder)):
 
             input_point = np.array(input_point)
             input_label = np.array(input_label)
+            
+            cam_img = np.expand_dims(cam_img, axis=0)
 
+            # print(test.shape)
+            # print(cam_img.shape)
             masks, _, _ = predictor.predict(
-                box=input_box,
-                point_coords=input_point,
-                point_labels=input_label,
+                # box=input_box,
+                # point_coords=input_point,
+                # point_labels=input_label,
+                mask_input=cam_img,
                 multimask_output=False,
             )
             
@@ -278,17 +283,8 @@ for s, cam_file in enumerate(os.listdir(cam_folder)):
             point_save = out_point_fig_dir + str(current_batch) +'.jpg'
             plt.savefig(point_save, bbox_inches='tight', pad_inches=0)
             plt.close()
+
             
-            sam_box = find_bounding_box_2d(masks[0])
-            cam_box = find_bounding_box_2d(cam_img)
-            if sam_box == None or cam_box == None: 
-                continue
-            min_y, max_y, min_x, max_x = sam_box
-            sam_box = [min_y, min_x, max_y, max_x]
-            min_y, max_y, min_x, max_x = cam_box
-            cam_box = [min_y, min_x, max_y, max_x]
-            scores += box_iou_xyxy(sam_box, cam_box)
-            cnt += 1
 
         if len(all_masks) > 0:
             all_masks_array = np.stack(all_masks, axis=0)
@@ -310,14 +306,12 @@ for s, cam_file in enumerate(os.listdir(cam_folder)):
         ## 对比原始cam
         sam_dice = metric.binary.dc(complete_sam_bzd, label_3d)
         cam_dice = metric.binary.dc(cam_array, label_3d)
-        
-        
-        scores /= cnt
+        differ_dice = metric.binary.dc(cam_array, complete_sam_bzd)
         # if differ_dice > 0.7:
         #     sitk.WriteImage(sitk.GetImageFromArray(cam_array), output_path)
-        print(f'{s + 1} / {alls}, {cam_file}, cam_dice: {cam_dice}, sam_dice: {sam_dice}, differ_dice: {scores}')
+        print(f'{s + 1} / {alls}, {cam_file}, cam_dice: {cam_dice}, sam_dice: {sam_dice}, differ_dice: {differ_dice}')
        
-        differ_dice_set.append([scores, cam_dice, sam_dice, sitk.GetImageFromArray(cam_array), output_path])
+        differ_dice_set.append([differ_dice, cam_dice, sam_dice, sitk.GetImageFromArray(cam_array), output_path])
 
         
 

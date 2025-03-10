@@ -47,15 +47,15 @@ class BraTS2019(Dataset):
 
 
 class BraTS2020(Dataset):
-    def __init__(self, base_dir=None, split='train', transform=None, sup='label', train_set='bare'):
+    def __init__(self, base_dir=None, split='train', transform=None, sup='1', train_set='bare'):
         self._base_dir = base_dir
         self.sample_list = []
         self.split = split 
         self.transform = transform
-        if split == 'train':
-            self.sample_list = os.listdir(self._base_dir + '/' + split)
+        if sup == '1':
+            self.sample_list = os.listdir("/media/ubuntu/maxiaochuan/CLISC/data_BraTS/volume_pre/pseudo/train/bare")
         else:
-            self.sample_list = os.listdir(self._base_dir + '/' + split)
+            self.sample_list = os.listdir("/media/ubuntu/maxiaochuan/CLISC/data_BraTS/volume_pre/pseudo/train/80%")
         self.sup = sup
         self.train_set = train_set
         
@@ -66,14 +66,17 @@ class BraTS2020(Dataset):
     def __getitem__(self, idx):
         case = self.sample_list[idx]
         filename = os.path.join(self._base_dir, self.split, case)        
-        # base_dir = /media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/data_BraTS/volume_pre/image
+        # base_dir = /media/ubuntu/maxiaochuan/CLISC/data_BraTS/volume_pre/image
         # split = filter_train or valid
         # sup = pseudo
 
         image = sitk.GetArrayFromImage(sitk.ReadImage(filename)).squeeze()
-        # /media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/data_BraTS/volume_pre/image/train/BraTS20_Training_003.nii.gz
+        # /media/ubuntu/maxiaochuan/CLISC/data_BraTS/volume_pre/image/train/BraTS20_Training_003.nii.gz
         if self.split == 'train':
-            label = sitk.GetArrayFromImage(sitk.ReadImage(os.path.join("/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/Code_seg_BraTS/Unet_Pseg", filename.split('/')[-1]))).squeeze()
+            if self.sup == '1':
+                label = sitk.GetArrayFromImage(sitk.ReadImage(os.path.join("/media/ubuntu/maxiaochuan/CLISC/data_BraTS/volume_pre/pseudo/train/bare", filename.split('/')[-1]))).squeeze()
+            else:
+                label = sitk.GetArrayFromImage(sitk.ReadImage(os.path.join("/media/ubuntu/maxiaochuan/CLISC/data_BraTS/volume_pre/pseudo/train/80%", filename.split('/')[-1]))).squeeze()
 
         else:
             label = sitk.GetArrayFromImage(sitk.ReadImage(filename.replace('image', 'label'))).squeeze()

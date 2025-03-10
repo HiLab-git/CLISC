@@ -1,6 +1,4 @@
-# 用验证集的图，计算3维的cam，可以贴在原来的图像上
-# 修改cam：output_dir和cam初始化和最后的命名
-
+from html import parser
 import os
 import torch
 import cv2
@@ -16,6 +14,7 @@ from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
 from pytorch_grad_cam.utils.image import show_cam_on_image
 import torch.nn as nn
 from pytorch_grad_cam.ablation_layer import AblationLayerVit
+import argparse
 
 class EqualizeHist:
     """Apply OpenCV clahe equalize to the image."""
@@ -32,15 +31,25 @@ class EqualizeHist:
 
         return Image.fromarray(img_np)
 
+args = argparse.ArgumentParser()
+args.add_argument('stage', type=str, default="raw", help="raw or enhanced")
+args = args.parse_args()
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
-root_dir = '/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/data_BraTS/volume_pre/image/valid'       # 用训练集调整
-root_dir_label = '/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/data_BraTS/volume_pre/label/valid'
-output_dir = '/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/data_BraTS/cam/valid_layercam_l3'
+if args.stage == "raw":
+    root_dir = '/media/ubuntu/maxiaochuan/CLISC/data_BraTS/volume_pre/image/train'
+    output_dir = '/media/ubuntu/maxiaochuan/CLISC/data_BraTS/cam/train_layercam_l3'
+    model_path = '/media/ubuntu/maxiaochuan/CLISC/CLIP/resnet_model/bare_res50_best_model.pth'
+else:
+    root_dir = '/media/ubuntu/maxiaochuan/CLISC/data_BraTS/volume_pre/image/train'
+    root_dir_label = '/media/ubuntu/maxiaochuan/CLISC/data_BraTS/volume_pre/label/train'
+    output_dir = '/media/ubuntu/maxiaochuan/CLISC/data_BraTS/cam/train_layercam_l3_aug'
+    model_path = '/media/ubuntu/maxiaochuan/CLISC/CLIP/resnet_model/aug_res50_best_model.pth'
+    
+root_dir_label = '/media/ubuntu/maxiaochuan/CLISC/data_BraTS/volume_pre/label/train'
 filenames = glob.glob(root_dir + "/*.nii.gz") 
 print(len(filenames))
 
-model_path = '/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/CLIP/resnet_model/res50_0.8861.pth'
 model = models.resnet50(weights=None)
 num_ftrs = model.fc.in_features
 # Modify the classifier (fc) part of the model

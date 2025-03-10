@@ -21,7 +21,7 @@ def largestConnectComponent(binaryimg):
     label_image[np.where(label_image > 0)] = 1
     return label_image
 
-U_net_model_path = '/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/Code_seg_BraTS/model/BraTs2020_Un_Supervised_gce/unet_3D/iter_2000_dice_0.8333.pth'
+U_net_model_path = '/media/ubuntu/maxiaochuan/CLISC/Code_seg_BraTS/model/BraTs2020_Un_Supervised_gce/unet_3D/iter_2000_dice_0.8333.pth'
 
 device = "cuda:3" if torch.cuda.is_available() else "cpu"
 
@@ -29,11 +29,11 @@ net = unet_3D(n_classes=2, in_channels=1).to(device)
 
 net.load_state_dict(torch.load(U_net_model_path))
 
-output_path = "/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/Code_seg_BraTS/Unet_Pseg"
+output_path = "/media/ubuntu/maxiaochuan/CLISC/Code_seg_BraTS/Unet_Pseg"
 
 os.makedirs(output_path, exist_ok=True)
 
-image_path = '/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/data_BraTS/volume_pre/image/train'
+image_path = '/media/ubuntu/maxiaochuan/CLISC/data_BraTS/volume_pre/image/train'
 
 
 all_dices = []

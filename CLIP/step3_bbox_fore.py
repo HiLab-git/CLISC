@@ -1,5 +1,6 @@
 # mask不一样时,异常值检测
 
+import time
 import SimpleITK as sitk
 import numpy as np
 import torch
@@ -9,11 +10,11 @@ import cv2
 
 import sys
 sys.path.append("..")
-sys.path.append(".")
 from segment_anything import sam_model_registry, SamPredictor
 
 import matplotlib.pyplot as plt
 from medpy import metric
+import argparse
 
 
 ## 辅助函数
@@ -72,16 +73,20 @@ def prepare_image(image, transform, device):
 
 
 ## 实例化sam model
-sam_checkpoint = "/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/segment-anything/sam_vit_b_01ec64.pth" 
+parser = argparse.ArgumentParser()
+parser.add_argument("--device", type=int, default=0, help="cuda number")
+args = parser.parse_args()
+device = args.device
+sam_checkpoint = "/media/ubuntu/maxiaochuan/CLISC/segment-anything/sam_vit_b_01ec64.pth" 
 model_type = "vit_b"
 
-# sam_checkpoint = "/media/ubuntu//maxiaochuan/CLIP_SAM_zero_shot_segmentation/segment-anything/sam_vit_h_4b8939.pth"
+# sam_checkpoint = "/media/ubuntu//maxiaochuan/CLISC/segment-anything/sam_vit_h_4b8939.pth"
 # model_type = "vit_h"
 
-device = "cuda:3"
 sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
 sam.to(device=device)
 predictor = SamPredictor(sam)
+
 resize_transform = ResizeLongestSide(sam.image_encoder.img_size)
 
 def show_mask(mask, ax, random_color=False):
@@ -129,33 +134,43 @@ def box_iou_xyxy(box1, box2):
     iou = intersection / union
     return iou
 
+ 
 
-f_path = '/media/ubuntu//maxiaochuan/CLIP_SAM_zero_shot_segmentation/data_BraTS'
-cam_folder = "/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/Code_seg_BraTS/Unet_Pseg"
+
+f_path = '/media/ubuntu//maxiaochuan/CLISC/data_BraTS'
+cam_folder = f_path + '/cam/train_layercam_l3_aug/cam_lcnt_3d_l3'
 bbx_cam_folder = cam_folder
 
 
 sam_dice_set = []
 cam_dice_set = []
-differ_dice_set = []
+# scores = []
 alls = len(os.listdir(cam_folder))
-os.makedirs(f_path + '/volume_pre/pseudo/train', exist_ok=True)
-
+os.makedirs(f_path + '/volume_pre/pseudo/train/bare', exist_ok=True)
 for s, cam_file in enumerate(os.listdir(cam_folder)):
     if cam_file.endswith('.nii.gz'):
         # 构建CAM和标签的文件路径
         cam_nii_path = os.path.join(cam_folder, cam_file) # 找到cam文件
         bbx_cam_nii_path = os.path.join(bbx_cam_folder, cam_file) # 同上
+        # label_file = cam_file.replace('_CAM', '')
+        # file = label_file.replace('_binary', '')
+        # label_path = f_path + '/volume_pre/label/train/' + file
+        # input_img_path = f_path + '/volume_pre/image/train/' + file
+
+        # output_path = f_path + '/train/train_sam/bb_2d/' + file
+        # out_point_fig_dir = f_path + '/train/train_sam/box_2d/' + file.split('.')[0] + '/'
+
+
 
         label_path = f_path + '/volume_pre/label/train/' + cam_file
         input_img_path = f_path + '/volume_pre/image/train/' + cam_file
 
-        output_path = f_path + '/volume_pre/pseudo/train/temp/' + cam_file
+        output_path = f_path + '/volume_pre/pseudo/train/bare/' + cam_file
         out_point_fig_dir = f_path + '/sam/testing/box/' + cam_file.split('.')[0] + '/'
         
         
         mask_file = cam_file.replace('.nii.gz', '_flair.nii')
-        mask_path = '/media/ubuntu//maxiaochuan/CLIP_SAM_zero_shot_segmentation/data/BraTS2020_preprocess/mask/' + mask_file
+        mask_path = '/media/ubuntu//maxiaochuan/CLISC/data/BraTS2020_preprocess/mask/' + mask_file
 
         if not os.path.exists(out_point_fig_dir):
             os.makedirs(out_point_fig_dir, exist_ok=True)
@@ -214,6 +229,7 @@ for s, cam_file in enumerate(os.listdir(cam_folder)):
         d = 0 # box dilation
 
         for i in range(len(pos_idx)):
+            # score = 0
             current_batch = pos_idx[i]
             input_img = img_array[current_batch, :, :]
             cam_img = bbx_cam_array[current_batch]
@@ -259,16 +275,11 @@ for s, cam_file in enumerate(os.listdir(cam_folder)):
 
             input_point = np.array(input_point)
             input_label = np.array(input_label)
-            
-            cam_img = np.expand_dims(cam_img, axis=0)
 
-            # print(test.shape)
-            # print(cam_img.shape)
             masks, _, _ = predictor.predict(
-                # box=input_box,
-                # point_coords=input_point,
-                # point_labels=input_label,
-                mask_input=cam_img,
+                box=input_box,
+                point_coords=input_point,
+                point_labels=input_label,
                 multimask_output=False,
             )
             
@@ -284,6 +295,10 @@ for s, cam_file in enumerate(os.listdir(cam_folder)):
             plt.savefig(point_save, bbox_inches='tight', pad_inches=0)
             plt.close()
 
+            # box1 = [minXid, minYid, maxXid, maxYid]
+            # b1, b2, a1, a2 = find_bounding_box_2d(masks[0])
+            # box2 = [a1, b1, a2, b2]
+            # score += box_iou_xyxy(box1, box2)
             
 
         if len(all_masks) > 0:
@@ -301,51 +316,22 @@ for s, cam_file in enumerate(os.listdir(cam_folder)):
         ## sam去除非脑区
         complete_sam_bzd *= mask_3d
         sam_save = sitk.GetImageFromArray(complete_sam_bzd)
-        
-
+        # sitk.WriteImage(sam_save, output_path)
         ## 对比原始cam
         sam_dice = metric.binary.dc(complete_sam_bzd, label_3d)
         cam_dice = metric.binary.dc(cam_array, label_3d)
-        differ_dice = metric.binary.dc(cam_array, complete_sam_bzd)
-        # if differ_dice > 0.7:
-        #     sitk.WriteImage(sitk.GetImageFromArray(cam_array), output_path)
-        print(f'{s + 1} / {alls}, {cam_file}, cam_dice: {cam_dice}, sam_dice: {sam_dice}, differ_dice: {differ_dice}')
-       
-        differ_dice_set.append([differ_dice, cam_dice, sam_dice, sitk.GetImageFromArray(cam_array), output_path])
-
+        print(f'{s + 1} / {alls}, {cam_file}, cam_dice: {cam_dice}, sam_dice: {sam_dice}')
+        sam_dice_set.append(sam_dice)
+        cam_dice_set.append(cam_dice)
+        # scores.append([score, cam_dice, sam_dice])
         
-
-
-
-print('finished')
-
-differ_dice_set.sort()
-thresh100 = int(len(differ_dice_set) * 0)
-thresh90 = int(len(differ_dice_set) * 0.1)
-thresh80 = int(len(differ_dice_set) * 0.2)
-thresh70 = int(len(differ_dice_set) * 0.3)
-thresh60 = int(len(differ_dice_set) * 0.4)
-for i, (differ_dice, cam_dice, sam_dice, cam_save, output_path) in enumerate(differ_dice_set):
-    print(f"differ_dice: {differ_dice:.4f}, cam_dice: {cam_dice:.4f}, sam_dice: {sam_dice:.4f}")
-    sam_dice_set.append(sam_dice)
-    cam_dice_set.append(cam_dice)
-    if i >= thresh100:
-        sitk.WriteImage(cam_save, output_path.replace('temp', '100%'))
-    if i >= thresh90:
-        sitk.WriteImage(cam_save, output_path.replace('temp', '90%'))
-    if i >= thresh80:
-        sitk.WriteImage(cam_save, output_path.replace('temp', '80%'))
-    if i >= thresh70:
-        sitk.WriteImage(cam_save, output_path.replace('temp', '70%'))
-    if i >= thresh60:
-        sitk.WriteImage(cam_save, output_path.replace('temp', '60%'))
-    
-
 
 sam_dice_set = np.array(sam_dice_set) 
 cam_dice_set = np.array(cam_dice_set)
-print(f"100% sample, cam_dice: {cam_dice_set.mean():.4f}, cam_std: {cam_dice_set.std():.4f}, sam_dice: {sam_dice_set.mean():.4f}, sam_std: {sam_dice_set.std():.4f}")
-print(f"90% sample, cam_dice: {cam_dice_set[thresh90 : ].mean():.4f}, cam_std: {cam_dice_set[thresh90 : ].std():.4f}, sam_dice: {sam_dice_set[thresh90 : ].mean():.4f}, sam_std: {sam_dice_set[thresh90 : ].std():.4f}")
-print(f"80% sample, cam_dice: {cam_dice_set[thresh80 : ].mean():.4f}, cam_std: {cam_dice_set[thresh80 : ].std():.4f}, sam_dice: {sam_dice_set[thresh80 : ].mean():.4f}, sam_std: {sam_dice_set[thresh80 : ].std():.4f}")
-print(f"70% sample, cam_dice: {cam_dice_set[thresh70 : ].mean():.4f}, cam_std: {cam_dice_set[thresh70 : ].std():.4f}, sam_dice: {sam_dice_set[thresh70 : ].mean():.4f}, sam_std: {sam_dice_set[thresh70 : ].std():.4f}")
-print(f"60% sample, cam_dice: {cam_dice_set[thresh60 : ].mean():.4f}, cam_std: {cam_dice_set[thresh60 : ].std():.4f}, sam_dice: {sam_dice_set[thresh60 : ].mean():.4f}, sam_std: {sam_dice_set[thresh60 : ].std():.4f}")
+print('finished')
+print(f'cam_dice:{np.mean(cam_dice_set):.4f} cam_std:{np.std(cam_dice_set):.4f} sam_dice:{np.mean(sam_dice_set):.4f} sam_std:{np.std(sam_dice_set):.4f}')
+# 关闭文件
+
+# scores.sort()
+# for score, cam_dice, sam_dice in scores:
+#     print(score, '--', cam_dice, '--', sam_dice)

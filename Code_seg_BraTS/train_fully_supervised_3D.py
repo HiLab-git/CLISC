@@ -50,11 +50,11 @@ class GeneralizedCrossEntropyLoss(torch.nn.Module):
 def config():
     parser = argparse.ArgumentParser()
     
-    parser.add_argument('--root_path', type=str, default='/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/data_BraTS/volume_pre/image', help='Name of Experiment')
+    parser.add_argument('--root_path', type=str, default='/media/ubuntu/maxiaochuan/CLISC/data_BraTS/volume_pre/image', help='Name of Experiment')
     parser.add_argument('--exp', type=str, default='BraTs2020_Un_Supervised_ce', help='experiment_name')
     parser.add_argument('--model', type=str, default='unet_3D', help='model_name')
     parser.add_argument('--save_model_name', type=str, default='unet_3D')
-    parser.add_argument('--sup', type=str, default='pseudo', help='model_name') # or 'label'
+    parser.add_argument('--stage', type=str, default='1', help='model_name') # or 'label'
     parser.add_argument('--max_epoch', type=int, default=400, help='maximum epoch number to train')
     parser.add_argument('--batch_size', type=int, default=2, help='batch_size per gpu')
     parser.add_argument('--deterministic', type=int,  default=1, help='whether use deterministic training')
@@ -198,7 +198,7 @@ if __name__ == "__main__":
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
 
-    snapshot_path = "/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/Code_seg_BraTS/model/{}/{}".format(args.exp, args.save_model_name)
+    snapshot_path = "/media/ubuntu/maxiaochuan/CLISC/Code_seg_BraTS/model/{}/{}".format(args.exp, args.save_model_name)
     if not os.path.exists(snapshot_path):
         os.makedirs(snapshot_path)
     

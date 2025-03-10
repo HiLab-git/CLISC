@@ -7,9 +7,15 @@ from scipy.ndimage import binary_opening, generate_binary_structure, iterate_str
 from skimage import measure
 from pytorch_grad_cam.utils.image import show_cam_on_image
 from tqdm import tqdm
-
-label_folder = '/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/data_BraTS/volume_pre/label/train'
-cam_folder = '/media/ubuntu/maxiaochuan/CLIP_SAM_zero_shot_segmentation/data_BraTS/cam/train_layercam_l3/binarized_cam'
+import argparse
+args = argparse.ArgumentParser()
+args.add_argument('stage', type=str, default="raw", help="raw or enhanced")
+args = args.parse_args()
+if args.stage == "raw":
+    cam_folder = '/media/ubuntu/maxiaochuan/CLISC/data_BraTS/cam/train_layercam_l3/binarized_cam'
+else:
+    cam_folder = '/media/ubuntu/maxiaochuan/CLISC/data_BraTS/cam/train_layercam_l3_aug/binarized_cam'
+label_folder = '/media/ubuntu/maxiaochuan/CLISC/data_BraTS/volume_pre/label/train'
 
 
 def largestConnectComponent_3d(binaryimg, ratio=1):
