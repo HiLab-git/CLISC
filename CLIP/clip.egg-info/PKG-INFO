@@ -1,0 +1,8 @@
+Metadata-Version: 2.2
+Name: clip
+Version: 1.0
+Author: OpenAI
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Dynamic: author
+Dynamic: provides-extra

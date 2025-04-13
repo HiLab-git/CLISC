@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "CLISC"
+version = "1.0"
+description = "CLISC Project"
+authors = [
+    { name = "Xiaochuan Ma", email = "exclusive.xcm@gmail.com" }
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "ftfy",
+    "packaging",
+    "regex",
+    "tqdm",
+    "numpy",
+    "Pillow",
+    "ttach",
+    "opencv-python",
+    "matplotlib",
+    "scikit-learn",
+    "scikit-image",
+    "medpy",
+    "pytz"
+]
+
+[tool.setuptools.packages.find]
+include = ["CLIP*", "pytorch-grad-cam*", "segment-anything*"]
+
+[project.urls]
+Homepage = "https://github.com/Exclusivexc/CLISC.git"
