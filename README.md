@@ -43,20 +43,7 @@ python ./data/BraTS2020/preprocessing.py
 
 ```sh
 cd train
-python step0_get_clip_label.py
-
-python step1-1_train_res50.py --stage "raw"
-python step1-2_get_Layercam.py --stage "raw"
-python step1-3_AMDA.py 
-python step1-1_train_res50.py --stage "aug"
-python step1-2_get_Layercam.py --stage "aug"
-
-python step2_sam_inference.py
-
-python step3-1_train_UNet3D.py --training_csv "../data/BraTS2020/splits/train.csv" --exp "SAM_Sup"
-python step3-2_UNet_reget_pseg.py
-python step3-3_S3F.py
-python step3-1_train_UNet3D.py --training_csv "../data/BraTS2020/splits/top_80_percent.csv" --exp "UNet_Sup"
+bash run.sh
 ```
 
 ### 4. Test
