@@ -57,7 +57,6 @@ os.makedirs(image_dir, exist_ok=True)
 os.makedirs(label_dir, exist_ok=True)
 
 all_flair = glob.glob("./data/BraTS2020/raw_data/BraTS2020_TrainingData/MICCAI_BraTS2020_TrainingData/*/*_flair.nii")
-random.seed(42)
 random.shuffle(all_flair)
 
 total_samples = len(all_flair)
@@ -85,6 +84,7 @@ for split, file_list in [('train', train_files), ('valid', valid_files), ('test'
         lab = sitk.GetArrayFromImage(sitk.ReadImage(p.replace("flair", "seg")))
         img, lab, mask = brain_bbox(data, lab)
         img = MedicalImageDeal(img, percent=0.999).valid_img
+        img = (img - img.mean()) / img.std()
         lab[lab > 0] = 1
         uid = os.path.basename(p).replace("_flair.nii", ".nii.gz")
         
