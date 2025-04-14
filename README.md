@@ -21,11 +21,11 @@ pip install -e . ./CLIP ./segment-anything/ ./pytorch-grad-cam/
 
 ### 2. Dataset and Preprocessing
 We use the **BraTS2020_TrainingData** to evaluate the effectiveness of our framework. A total of 369 cases are split into training, validation, and test sets with a ratio of 7:1:2, which are shown in "data/BraTS2020/splits"
-#### Data Download (choice 1: preprocessed data)
-You can click [here](https://drive.google.com/drive/folders/1Vu2JwiSvIKAJ9NSDn-Q7coAq3J_HejCH?usp=drive_link) to download the processed data and place it as follows: "./data/BraTS2020/image" and "./data/BraTS2020/label" 
+#### Data Download choice 1: preprocessed data (Recommeded)
+click [here](https://drive.google.com/drive/folders/1Vu2JwiSvIKAJ9NSDn-Q7coAq3J_HejCH?usp=drive_link) to download the processed data and place it as follows: "./data/BraTS2020/image" and "./data/BraTS2020/label" 
 
-#### Data Download (choice 2: raw data and run preprocessing)
-You can also click [here](https://www.kaggle.com/datasets/awsaf49/brats20-dataset-training-validation) to download the raw data
+#### Data Download choice 2: raw data and run preprocessing
+click [here](https://www.kaggle.com/datasets/awsaf49/brats20-dataset-training-validation) to download the raw data
 
 ![Dataset](structure/Download_data.png)
 and **place it as**: 
