@@ -24,6 +24,7 @@ dependencies = [
     "scikit-learn",
     "scikit-image",
     "medpy",
+    "pandas",
     "pytz"
 ]
 

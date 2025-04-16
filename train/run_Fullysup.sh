@@ -1,0 +1,1 @@
+CUDA_VISIBLE_DEVICES=3 python step3-1_train_UNet3D.py --training_csv "../data/BraTS2020/splits/train.csv" --exp "Label_Sup"

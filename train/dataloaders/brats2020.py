@@ -17,6 +17,8 @@ class BraTS2020(Dataset):
         self.exp = exp
         self.transform = transform
         self.sample_list = pd.read_csv(csv_path)["image_pth"]
+        if exp == "SAM_Sup":
+            self.sample_list = [x for x in self.sample_list if os.path.exists(x.replace("image", "SAM_label"))]
         
 
     def __len__(self):

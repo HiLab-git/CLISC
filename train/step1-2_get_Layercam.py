@@ -57,7 +57,7 @@ def get_cam(filenames, model, output_dir):
 
             image_pil = Image.fromarray(image_2d)  # 转换为PIL图像
 
-            image_2d_normalized = (image_pil - np.min(image_pil)) / (np.max(image_pil) - np.min(image_pil)) * 255
+            image_2d_normalized = (image_pil - np.min(image_pil)) / (np.max(image_pil) - np.min(image_pil) + 1e-6) * 255
             image_2d_normalized = image_2d_normalized.astype(np.uint8)
             image_save = Image.fromarray(image_2d_normalized).convert('L')
 
@@ -156,7 +156,7 @@ def find_best_binary_threshold(cam_dir):
     best_dice = 0.0
 
     # Iterate over thresholds from 0.2 to 0.8 with a step of 0.05
-    for threshold in np.arange(0.2, 0.85, 0.05):
+    for threshold in np.arange(0.05, 0.85, 0.05):
         dice_scores = []
 
         for cam_file, label_file in zip(cam_files, label_files):

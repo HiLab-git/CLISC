@@ -112,8 +112,7 @@ if __name__ == "__main__":
     train_dataloader = DataLoader(image_datasets[train_set], batch_size=8, shuffle=True, num_workers=4)
     valid_dataloader = DataLoader(image_datasets['valid'], batch_size=8, shuffle=False, num_workers=4)
     dataloaders = {'train': train_dataloader, 'valid': valid_dataloader}
-
-    dataset_sizes = {x: len(image_datasets[x]) for x in [train_set, 'valid']}
+    dataset_sizes = {"train": len(image_datasets[train_set]), "valid": len(image_datasets['valid'])}
     class_names = image_datasets[train_set].classes
 
     model = models.resnet50(weights='ResNet50_Weights.IMAGENET1K_V1')

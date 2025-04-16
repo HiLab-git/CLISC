@@ -205,12 +205,13 @@ if __name__ == "__main__":
                 input_point = np.array(input_point)
                 input_label = np.array(input_label)
 
-                masks, _, _ = predictor.predict(
-                    box=input_box,
-                    point_coords=input_point,
-                    point_labels=input_label,
-                    multimask_output=False,
-                )
+                with torch.no_grad():
+                    masks, _, _ = predictor.predict(
+                        box=input_box,
+                        point_coords=input_point,
+                        point_labels=input_label,
+                        multimask_output=False,
+                    )
                 
                 all_masks.append(masks[0])
 

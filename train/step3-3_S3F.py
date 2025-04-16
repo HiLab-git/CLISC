@@ -1,5 +1,3 @@
-# mask不一样时,异常值检测
-
 import time
 import SimpleITK as sitk
 import numpy as np
@@ -77,12 +75,13 @@ def save_top_ratios(all_score):
     for ratio in ratios:
         top_count = int(len(all_score) * ratio)
         top_files = all_score[:top_count]
+        top_files = [[b, c] for a, b, c in top_files]
 
         # Create a DataFrame with two columns: image_pth and mask_pth
         df = pd.DataFrame(top_files, columns=["image_pth", "mask_pth"])
 
         # Save to CSV
-        output_file = os.path.join("../data/BraTS2020/splits", f"top_{int(ratios) * 100}_percent.csv")
+        output_file = os.path.join("../data/BraTS2020/splits", f"top_{int(ratio * 100)}_percent.csv")
         df.to_csv(output_file, index=False)
         print(f"Saved top {int(ratio * 100)}% to {output_file}")
 
@@ -106,7 +105,6 @@ if __name__ == "__main__":
 
     alls = len(os.listdir(UNet_label_dir))
 
-    
     all_score = []
     for s, filename in enumerate(os.listdir(UNet_label_dir)):
         if filename.endswith('.nii.gz'):
@@ -135,7 +133,7 @@ if __name__ == "__main__":
             for slice_index in pos_idx:
                 cam_slice = UNet_label[slice_index, :, :]
                 img_slice = img_array[slice_index, :, :]
-                img_slice_normalized = (img_slice - np.min(img_slice)) / (np.max(img_slice) - np.min(img_slice))
+                img_slice_normalized = (img_slice - np.min(img_slice)) / (np.max(img_slice) - np.min(img_slice) + 1e-6)
                 masked_img = cam_slice * img_slice_normalized
 
                 if masked_img.sum() == 0:
@@ -158,15 +156,20 @@ if __name__ == "__main__":
         
             ##  sam
             all_masks = []
-            d = 10 # box dilation
+            d = 0 # box dilation
 
             for i in range(len(pos_idx)):
                 # score = 0
                 current_batch = pos_idx[i]
+                
+                if current_batch not in foreground_points:
+                    all_masks.append(np.zeros((img_slice.shape[0], img_slice.shape[1]), dtype=np.uint8))
+                    continue
+                
                 input_img = img_array[current_batch, :, :]
                 cam_img = UNet_label[current_batch]
-                if cam_img.sum() == 0:
-                    continue
+                
+                
                 min_y, max_y, min_x, max_x = find_bounding_box_2d(cam_img)
 
                 minXid = max(0, min_x - d)
@@ -179,6 +182,9 @@ if __name__ == "__main__":
 
                 input_point = []
                 input_label = []
+                
+
+               
                 for fore in foreground_points[current_batch]:
                     input_point.append(fore)
                     input_label.append(1)
@@ -208,13 +214,13 @@ if __name__ == "__main__":
 
                 input_point = np.array(input_point)
                 input_label = np.array(input_label)
-
-                masks, _, _ = predictor.predict(
-                    box=input_box,
-                    point_coords=input_point,
-                    point_labels=input_label,
-                    multimask_output=False,
-                )
+                with torch.no_grad():
+                    masks, _, _ = predictor.predict(
+                        box=input_box,
+                        point_coords=input_point,
+                        point_labels=input_label,
+                        multimask_output=False,
+                    )
                 
                 all_masks.append(masks[0])
 
@@ -235,9 +241,7 @@ if __name__ == "__main__":
             UNet_label_dice = metric.binary.dc(UNet_label, label_3d)
             similarity = metric.binary.dc(complete_sam_bzd, UNet_label)
             print(f'{s + 1} / {alls}, {filename}, UNet_label_dice: {UNet_label_dice}, sam_dice: {sam_dice}, similarity: {similarity}')
-            all_score.append(similarity, filename)
+            all_score.append([similarity, os.path.join("../data/BraTS2020/image", filename), os.path.join("../data/BraTS2020/label", filename)])
 
     
-    
     save_top_ratios(all_score)
-    
