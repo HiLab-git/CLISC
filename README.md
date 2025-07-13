@@ -54,10 +54,12 @@ python test_3D.py --stage "test"
 
 ## Citation 
 ```bash
-@article{ma2025clisc,
+@inproceedings{ma2025clisc,
   title={CLISC: Bridging clip and sam by enhanced cam for unsupervised brain tumor segmentation},
   author={Ma, Xiaochuan and Fu, Jia and Liao, Wenjun and Zhang, Shichuan and Wang, Guotai},
-  journal={arXiv preprint arXiv:2501.16246},
-  year={2025}
+  booktitle={2025 IEEE 22nd International Symposium on Biomedical Imaging (ISBI)},
+  pages={1--5},
+  year={2025},
+  organization={IEEE}
 }
 ```
